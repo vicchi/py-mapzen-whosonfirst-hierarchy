@@ -234,6 +234,11 @@ class ancestors:
 
         lat, lon = mapzen.whosonfirst.utils.reverse_geocoordinates(feature)
 
+        if lat == 0.0 and lon == 0.0:
+            logging.debug("feature %s is on null island", feature['properties']['wof:id'])
+            self.ensure_common_ancestors(feature)
+            return False
+
         logging.debug("reverse geocoordinates for %s: %s, %s" % (feature['properties']['wof:id'], lat, lon))
 
         # get the list of possible parents for this feature, filtering out
@@ -355,11 +360,14 @@ class ancestors:
         # find the things that are ancestors of this placetype and
         # ensure that they are in the hierarchy
 
+        self.ensure_common_ancestors(feature)
+
+    def ensure_common_ancestors(self, feature):
+
+        props = feature["properties"];
         pt = props["wof:placetype"]
+
         pt = mapzen.whosonfirst.placetypes.placetype(pt)
-
-        # see what's happening? we're making a list of strings
-
         common = map(str, pt.ancestors(['common']))
 
         self.debug(feature, "ensure common ancestors (is a %s) : %s" % (pt, ";".join(common)))
@@ -410,6 +418,11 @@ class ancestors:
             return True
             
         lat, lon = mapzen.whosonfirst.utils.reverse_geocoordinates(feature)
+
+        if lat == 0.0 and lon == 0.0:
+            logging.debug("feature %s is on null island", feature['properties']['wof:id'])
+            self.ensure_common_ancestors(feature)
+            return False
 
         pt = mapzen.whosonfirst.placetypes.placetype(props["wof:placetype"])
 
